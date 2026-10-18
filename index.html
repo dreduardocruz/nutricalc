@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Instituto Python" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>NutriCalc Brasil — Instituto Python | Dr. Eduardo Pereira Cruz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+    input, select, textarea { font-size: 16px !important; } /* Evita auto-zoom no iOS Safari */
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .print-card { border: 1px solid #e5e7eb !important; box-shadow: none !important; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- HEADER INSTITUTO PYTHON -->
+  <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Espaço para logo.png da clínica -->
+        <div class="relative flex items-center">
+          <img src="logo.png" alt="Logo Instituto Python" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='flex';" class="h-11 w-auto object-contain rounded-lg" />
+          <div id="fallback-logo" style="display:none;" class="w-11 h-11 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-800 text-white flex items-center justify-center font-bold text-lg shadow">
+            IP
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Instituto Python</h1>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-300">NutriCalc Pro</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Dr. Eduardo Pereira Cruz • CRM-GO 6527 | Metabolismo, Bioimpedância & Macronutrientes</p>
+          <p class="text-[11px] leading-tight text-slate-400 dark:text-slate-500">Ginecologia e Obstetrícia — RQE 2394 · Acupuntura — RQE 13650</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 no-print">
+        <button onclick="openBioModal()" class="text-xs sm:text-sm font-medium px-3 py-2 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:hover:bg-teal-900/70 dark:text-teal-300 border border-teal-200 dark:border-teal-700 transition flex items-center gap-1.5">
+          <span>⚡</span> Bioimpedância / JSON
+        </button>
+        <button onclick="window.print()" class="text-xs sm:text-sm font-medium px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 transition">
+          🖨️ Imprimir / PDF
+        </button>
+        <button onclick="toggleTheme()" id="themeBtn" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 transition" title="Alternar Tema">
+          🌓
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER DE DADOS IMPORTADOS VIA PIPELINE -->
+  <div id="bioBanner" class="hidden bg-teal-600 text-white px-4 py-2 text-xs sm:text-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <span id="bioBannerText">✅ Dados da Bioimpedância carregados automaticamente via Pipeline!</span>
+      <button onclick="document.getElementById('bioBanner').classList.add('hidden')" class="text-white/80 hover:text-white font-bold">✕</button>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- COLUNA ESQUERDA: DADOS DO PACIENTE, BIOIMPEDÂNCIA E METAS (5 cols) -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Card 1: Dados Antropométricos & Bioimpedância -->
+      <section class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 print-card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🧬</span> 1. Perfil & Bioimpedância
+          </h2>
+          <span id="formulaBadge" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Mifflin-St Jeor</span>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Nome do Paciente (opcional)</label>
+            <input type="text" id="patientName" placeholder="Ex: Maria Silva" oninput="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Sexo</label>
+              <select id="sex" onchange="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-2.5 py-2 text-sm">
+                <option value="F">Feminino</option>
+                <option value="M">Masculino</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Idade (anos)</label>
+              <input type="number" id="age" value="35" min="10" max="110" oninput="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Peso (kg)</label>
+              <input type="number" id="weight" value="72.0" step="0.1" min="25" max="300" oninput="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-3 py-2 text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Altura (cm)</label>
+              <input type="number" id="height" value="165" min="100" max="240" oninput="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-3 py-2 text-sm" />
+            </div>
+          </div>
+
+          <!-- Campos Extras de Bioimpedância -->
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-teal-700 dark:text-teal-400">Dados da Bioimpedância (Opcional)</span>
+              <span class="text-[11px] text-slate-400">Ativa Katch-McArdle / TMB Real</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">% Gordura (BF)</label>
+                <input type="number" id="bf" placeholder="Ex: 24.5" step="0.1" oninput="onBioInput('bf')" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-2.5 py-1.5 text-sm" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Massa Magra (kg)</label>
+                <input type="number" id="lbm" placeholder="Ex: 54.3" step="0.1" oninput="onBioInput('lbm')" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-2.5 py-1.5 text-sm" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">TMB Medida (kcal)</label>
+                <input type="number" id="bmrMeasured" placeholder="Auto" oninput="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-2.5 py-1.5 text-sm" />
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Nível de Atividade Física</label>
+              <select id="activity" onchange="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-3 py-2 text-sm">
+                <option value="1.2">Sedentário (1.2x)</option>
+                <option value="1.375" selected>Leve 1-3 dias/sem (1.375x)</option>
+                <option value="1.55">Moderado 3-5 dias/sem (1.55x)</option>
+                <option value="1.725">Intenso 6-7 dias/sem (1.725x)</option>
+                <option value="1.9">Atleta / Muito Intenso (1.9x)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Objetivo Clínico</label>
+              <select id="goal" onchange="saveAndCalc()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 px-3 py-2 text-sm font-medium">
+                <option value="-500">Emagrecimento (-500 kcal)</option>
+                <option value="-300">Déficit Leve (-300 kcal)</option>
+                <option value="0" selected>Manutenção / Recomposição (0 kcal)</option>
+                <option value="300">Hipertrofia Limpa (+300 kcal)</option>
+                <option value="500">Ganho Muscular (+500 kcal)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- KPIs Metabólicos -->
+          <div class="grid grid-cols-3 gap-2 pt-3">
+            <div class="bg-slate-50 dark:bg-slate-700/40 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700 text-center">
+              <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">TMB Basal</span>
+              <span id="tmbVal" class="text-lg font-extrabold text-slate-800 dark:text-white">1450</span>
+              <span class="text-[11px] text-slate-400 block">kcal/dia</span>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-700/40 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700 text-center">
+              <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Gasto (GETD)</span>
+              <span id="tdeeVal" class="text-lg font-extrabold text-slate-800 dark:text-white">1994</span>
+              <span class="text-[11px] text-slate-400 block">kcal/dia</span>
+            </div>
+            <div class="bg-teal-50 dark:bg-teal-900/30 p-3 rounded-xl border border-teal-200 dark:border-teal-700/60 text-center">
+              <span class="block text-[11px] uppercase tracking-wider text-teal-600 dark:text-teal-300 font-bold">Meta Diária</span>
+              <span id="targetKcalVal" class="text-lg font-extrabold text-teal-700 dark:text-teal-300">1994</span>
+              <span class="text-[11px] text-teal-600/80 dark:text-teal-400 block">kcal/dia</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs bg-sky-50 dark:bg-sky-900/20 text-sky-800 dark:text-sky-300 px-3.5 py-2 rounded-xl border border-sky-200/60 dark:border-sky-800/50">
+            <span>💧 <strong>Hidratação Recomendada (35 ml/kg):</strong></span>
+            <span id="waterVal" class="font-bold">2.52 Litros/dia</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card 2: Divisão de Macronutrientes -->
+      <section class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 print-card">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🎯</span> 2. Metas de Macronutrientes
+          </h2>
+          <div class="flex gap-1 no-print">
+            <button onclick="setMacroPreset(30, 40, 30)" class="text-[11px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 font-medium">Equilibrada</button>
+            <button onclick="setMacroPreset(40, 30, 30)" class="text-[11px] px-2 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100 dark:bg-teal-900/40 dark:text-teal-300 font-medium">Hiperproteica</button>
+            <button onclick="setMacroPreset(35, 25, 40)" class="text-[11px] px-2 py-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300 font-medium">Low Carb</button>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <!-- Proteínas -->
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-rose-600 dark:text-rose-400">🥩 Proteínas (<span id="protPctLbl">30</span>% • <span id="protGkgLbl">2.0</span> g/kg)</span>
+              <span id="protTargetG" class="font-bold">150 g (600 kcal)</span>
+            </div>
+            <input type="range" id="protPct" min="10" max="60" value="30" oninput="adjustMacros('P')" class="w-full accent-rose-600 no-print" />
+          </div>
+
+          <!-- Carboidratos -->
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-amber-600 dark:text-amber-400">🍚 Carboidratos (<span id="carbPctLbl">40</span>% • <span id="carbGkgLbl">2.7</span> g/kg)</span>
+              <span id="carbTargetG" class="font-bold">200 g (800 kcal)</span>
+            </div>
+            <input type="range" id="carbPct" min="5" max="75" value="40" oninput="adjustMacros('C')" class="w-full accent-amber-500 no-print" />
+          </div>
+
+          <!-- Gorduras -->
+          <div>
+            <div class="flex justify-between text-xs font-semibold mb-1">
+              <span class="text-sky-600 dark:text-sky-400">🥑 Gorduras (<span id="fatPctLbl">30</span>% • <span id="fatGkgLbl">0.9</span> g/kg)</span>
+              <span id="fatTargetG" class="font-bold">66 g (594 kcal)</span>
+            </div>
+            <input type="range" id="fatPct" min="15" max="65" value="30" oninput="adjustMacros('F')" class="w-full accent-sky-500 no-print" />
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- COLUNA DIREITA: RESUMO DO DIA E CARDÁPIO INTERATIVO (7 cols) -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Card 3: Progresso Diário em Tempo Real -->
+      <section class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 print-card">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>📊</span> Balanço Nutricional do Cardápio
+          </h2>
+          <span id="calStatusBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+            Dentro da Meta
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <!-- Calorias -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-200/70 dark:border-slate-700">
+            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+              <span>Calorias</span>
+              <span id="calPctTxt" class="font-bold">0%</span>
+            </div>
+            <div class="text-lg font-extrabold text-slate-900 dark:text-white">
+              <span id="eatenKcal">0</span> <span class="text-xs font-normal text-slate-400">/ <span id="goalKcalInline">2000</span> kcal</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-600 h-2 rounded-full mt-2 overflow-hidden">
+              <div id="calBar" class="bg-teal-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Proteínas -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-200/70 dark:border-slate-700">
+            <div class="flex justify-between text-xs text-rose-600 dark:text-rose-400 font-medium mb-1">
+              <span>Proteínas</span>
+              <span id="protBarPct">0%</span>
+            </div>
+            <div class="text-lg font-extrabold text-slate-900 dark:text-white">
+              <span id="eatenProt">0</span> <span class="text-xs font-normal text-slate-400">/ <span id="goalProtInline">150</span>g</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-600 h-2 rounded-full mt-2 overflow-hidden">
+              <div id="protBar" class="bg-rose-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Carboidratos -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-200/70 dark:border-slate-700">
+            <div class="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-medium mb-1">
+              <span>Carboidratos</span>
+              <span id="carbBarPct">0%</span>
+            </div>
+            <div class="text-lg font-extrabold text-slate-900 dark:text-white">
+              <span id="eatenCarb">0</span> <span class="text-xs font-normal text-slate-400">/ <span id="goalCarbInline">200</span>g</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-600 h-2 rounded-full mt-2 overflow-hidden">
+              <div id="carbBar" class="bg-amber-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Gorduras -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-200/70 dark:border-slate-700">
+            <div class="flex justify-between text-xs text-sky-600 dark:text-sky-400 font-medium mb-1">
+              <span>Gorduras</span>
+              <span id="fatBarPct">0%</span>
+            </div>
+            <div class="text-lg font-extrabold text-slate-900 dark:text-white">
+              <span id="eatenFat">0</span> <span class="text-xs font-normal text-slate-400">/ <span id="goalFatInline">65</span>g</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-600 h-2 rounded-full mt-2 overflow-hidden">
+              <div id="fatBar" class="bg-sky-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card 4: Planejador de Refeições TACO -->
+      <section class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 print-card">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🍽️</span> 3. Planejador de Refeições Diárias (Base TACO)
+          </h2>
+          <div class="flex gap-2 no-print">
+            <button onclick="openCustomFoodModal()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 dark:bg-teal-900/40 dark:text-teal-300 border border-teal-200 dark:border-teal-700">
+              + Novo Alimento
+            </button>
+            <button onclick="clearMeals()" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-300">
+              Limpar Dia
+            </button>
+          </div>
+        </div>
+
+        <div id="mealsContainer" class="space-y-4"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL: PIPELINE DE BIOIMPEDÂNCIA / JSON -->
+  <div id="bioModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">⚡ Integração Pipeline Bioimpedância</h3>
+        <button onclick="closeBioModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+        Cole abaixo o JSON gerado pelo seu pipeline de bioimpedância ou gere um link direto (URL Query) para enviar ao paciente no WhatsApp/iOS:
+      </p>
+      <textarea id="bioJsonInput" rows="5" class="w-full font-mono text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 p-3 mb-3" placeholder='{"nome": "Paciente Exemplo", "sexo": "F", "idade": 38, "peso": 68.5, "altura": 164, "bf": 22.4, "massa_magra": 53.1, "tmb": 1490}'></textarea>
+      <div class="flex flex-wrap justify-between gap-2">
+        <button onclick="copyShareUrl()" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+          🔗 Copiar Link com Dados Atuais
+        </button>
+        <div class="flex gap-2">
+          <button onclick="closeBioModal()" class="text-xs px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600">Cancelar</button>
+          <button onclick="applyBioJson()" class="text-xs font-semibold px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white">Carregar JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CADASTRAR ALIMENTO PERSONALIZADO -->
+  <div id="customFoodModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">+ Cadastrar Alimento (por 100g)</h3>
+        <button onclick="closeCustomFoodModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-500 mb-1">Nome do Alimento / Suplemento</label>
+          <input type="text" id="cfName" placeholder="Ex: Barra de Proteína / Iogurte Grego" class="w-full rounded-xl border px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600" />
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Proteína (100g)</label>
+            <input type="number" id="cfP" value="10" step="0.1" class="w-full rounded-xl border px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Carbo (100g)</label>
+            <input type="number" id="cfC" value="15" step="0.1" class="w-full rounded-xl border px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Gordura (100g)</label>
+            <input type="number" id="cfF" value="5" step="0.1" class="w-full rounded-xl border px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button onclick="closeCustomFoodModal()" class="text-xs px-3 py-2 rounded-xl border">Cancelar</button>
+          <button onclick="saveCustomFood()" class="text-xs font-semibold px-4 py-2 rounded-xl bg-teal-600 text-white">Salvar Alimento</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RODAPÉ INSTITUTO PYTHON -->
+  <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 mt-10 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+      <div>
+        <p class="font-bold text-slate-800 dark:text-slate-200">Instituto Python • Medicina Metabólica, Longevidade & Bioimpedância</p>
+        <p>Responsável Técnico: Dr. Eduardo Pereira Cruz — CRM-GO 6527 · Ginecologia e Obstetrícia (RQE 2394) · Acupuntura (RQE 13650) | Goiânia - GO</p>
+      </div>
+      <div class="text-center sm:text-right">
+        <p>Desenvolvido com auxílio do <strong>Google Gemini 4.0</strong> • Código Aberto sob <strong>Licença MIT</strong></p>
+        <p class="text-[11px] text-slate-400 mt-0.5">Ferramenta de apoio clínico e educativo. Não substitui consulta médica individualizada.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Banco de Alimentos Brasileiro (Base TACO / Suplementos - valores por 100g)
+    const defaultFoods = [
+      { id: 'frango', name: 'Peito de Frango Grelhado', p: 32.0, c: 0.0, f: 2.5 },
+      { id: 'patinho', name: 'Carne Bovina (Patinho Grelhado)', p: 35.9, c: 0.0, f: 7.3 },
+      { id: 'ovo', name: 'Ovo de Galinha Cozido/Mexido (1 un ≈ 50g)', p: 13.3, c: 0.6, f: 9.5 },
+      { id: 'tilapia', name: 'Filé de Tilápia / Peixe Branco Assado', p: 26.2, c: 0.0, f: 2.7 },
+      { id: 'whey', name: 'Whey Protein Concentrado (1 dose ≈ 30g)', p: 80.0, c: 10.0, f: 5.0 },
+      { id: 'arroz_b', name: 'Arroz Branco Cozido', p: 2.5, c: 28.1, f: 0.2 },
+      { id: 'arroz_i', name: 'Arroz Integral Cozido', p: 2.6, c: 25.8, f: 1.0 },
+      { id: 'feijao', name: 'Feijão Carioca / Preto Cozido', p: 4.8, c: 13.6, f: 0.5 },
+      { id: 'batata_doce', name: 'Batata-Doce Cozida', p: 0.6, c: 18.4, f: 0.1 },
+      { id: 'mandioca', name: 'Mandioca / Aipim Cozido', p: 0.6, c: 30.1, f: 0.3 },
+      { id: 'cuscuz', name: 'Cuscuz de Milho Cozido', p: 2.2, c: 25.3, f: 0.7 },
+      { id: 'tapioca', name: 'Goma de Tapioca Hidratada', p: 0.0, c: 54.0, f: 0.0 },
+      { id: 'aveia', name: 'Aveia em Flocos', p: 13.9, c: 66.6, f: 8.5 },
+      { id: 'pao_integral', name: 'Pão de Forma Integral (2 fatias ≈ 50g)', p: 9.4, c: 49.9, f: 3.7 },
+      { id: 'pao_frances', name: 'Pão Francês (1 un ≈ 50g)', p: 8.0, c: 58.6, f: 3.1 },
+      { id: 'queijo_minas', name: 'Queijo Minas Frescal / Ricota', p: 17.4, c: 3.2, f: 20.2 },
+      { id: 'iogurte', name: 'Iogurte Natural Desnatado', p: 5.8, c: 7.8, f: 0.3 },
+      { id: 'banana', name: 'Banana Prata / Nanica (1 un ≈ 70g)', p: 1.3, c: 26.0, f: 0.1 },
+      { id: 'maca', name: 'Maçã / Pera com Casca', p: 0.3, c: 15.2, f: 0.0 },
+      { id: 'mamao', name: 'Mamão Formosa / Papaia', p: 0.8, c: 11.6, f: 0.1 },
+      { id: 'abacate', name: 'Abacate / Avocado', p: 1.2, c: 6.0, f: 8.4 },
+      { id: 'azeite', name: 'Azeite de Oliva Extra Virgem (1 col ≈ 10g)', p: 0.0, c: 0.0, f: 100.0 },
+      { id: 'castanha', name: 'Castanha-do-Pará / Caju / Amêndoas', p: 14.5, c: 15.1, f: 63.5 },
+      { id: 'pasta_amendoim', name: 'Pasta de Amendoim Integral', p: 28.0, c: 20.0, f: 49.0 }
+    ];
+
+    const mealNames = [
+      { id: 0, title: '☕ Café da Manhã' },
+      { id: 1, title: '🍎 Lanche da Manhã / Colação' },
+      { id: 2, title: '🍛 Almoço' },
+      { id: 3, title: '🥪 Lanche da Tarde / Pré-Treino' },
+      { id: 4, title: '🍲 Jantar / Ceia' }
+    ];
+
+    let customFoods = JSON.parse(localStorage.getItem('ip_nutricalc_custom_foods') || '[]');
+    let mealsData = JSON.parse(localStorage.getItem('ip_nutricalc_meals') || 'null') || {
+      0: [{ foodId: 'ovo', grams: 100 }, { foodId: 'cuscuz', grams: 120 }, { foodId: 'banana', grams: 70 }],
+      1: [{ foodId: 'whey', grams: 30 }, { foodId: 'aveia', grams: 30 }],
+      2: [{ foodId: 'frango', grams: 150 }, { foodId: 'arroz_i', grams: 120 }, { foodId: 'feijao', grams: 100 }, { foodId: 'azeite', grams: 10 }],
+      3: [{ foodId: 'iogurte', grams: 170 }, { foodId: 'mamao', grams: 120 }],
+      4: [{ foodId: 'patinho', grams: 140 }, { foodId: 'batata_doce', grams: 130 }]
+    };
+
+    function getAllFoods() {
+      return [...defaultFoods, ...customFoods];
+    }
+
+    function onBioInput(changed) {
+      const weight = parseFloat(document.getElementById('weight').value) || 70;
+      const bfEl = document.getElementById('bf');
+      const lbmEl = document.getElementById('lbm');
+      if (changed === 'bf' && bfEl.value !== '') {
+        const bf = parseFloat(bfEl.value);
+        if (bf > 0 && bf < 75) {
+          lbmEl.value = (weight * (1 - bf / 100)).toFixed(1);
+        }
+      } else if (changed === 'lbm' && lbmEl.value !== '') {
+        const lbm = parseFloat(lbmEl.value);
+        if (lbm > 0 && lbm < weight) {
+          bfEl.value = ((1 - lbm / weight) * 100).toFixed(1);
+        }
+      }
+      saveAndCalc();
+    }
+
+    function calculateTargets() {
+      const sex = document.getElementById('sex').value;
+      const age = parseFloat(document.getElementById('age').value) || 35;
+      const weight = parseFloat(document.getElementById('weight').value) || 70;
+      const height = parseFloat(document.getElementById('height').value) || 165;
+      const lbm = parseFloat(document.getElementById('lbm').value);
+      const bmrMeasured = parseFloat(document.getElementById('bmrMeasured').value);
+      const activity = parseFloat(document.getElementById('activity').value) || 1.375;
+      const goal = parseFloat(document.getElementById('goal').value) || 0;
+
+      let tmb = 0;
+      const badge = document.getElementById('formulaBadge');
+
+      if (!isNaN(bmrMeasured) && bmrMeasured > 500) {
+        tmb = bmrMeasured;
+        badge.textContent = 'TMB Direta (Bioimpedância)';
+      } else if (!isNaN(lbm) && lbm > 20) {
+        // Katch-McArdle usando Massa Magra da Bioimpedância
+        tmb = 370 + (21.6 * lbm);
+        badge.textContent = 'Katch-McArdle (Massa Magra)';
+      } else {
+        // Mifflin-St Jeor
+        tmb = (10 * weight) + (6.25 * height) - (5 * age) + (sex === 'M' ? 5 : -161);
+        badge.textContent = 'Mifflin-St Jeor';
+      }
+
+      const tdee = tmb * activity;
+      const targetKcal = Math.max(1000, Math.round(tdee + goal));
+
+      document.getElementById('tmbVal').textContent = Math.round(tmb);
+      document.getElementById('tdeeVal').textContent = Math.round(tdee);
+      document.getElementById('targetKcalVal').textContent = targetKcal;
+      document.getElementById('waterVal').textContent = ((weight * 35) / 1000).toFixed(2) + ' Litros/dia';
+
+      // Macros
+      const pPct = parseInt(document.getElementById('protPct').value) || 30;
+      const cPct = parseInt(document.getElementById('carbPct').value) || 40;
+      const fPct = parseInt(document.getElementById('fatPct').value) || 30;
+
+      const pKcal = (targetKcal * pPct) / 100;
+      const cKcal = (targetKcal * cPct) / 100;
+      const fKcal = (targetKcal * fPct) / 100;
+
+      const pG = Math.round(pKcal / 4);
+      const cG = Math.round(cKcal / 4);
+      const fG = Math.round(fKcal / 9);
+
+      document.getElementById('protPctLbl').textContent = pPct;
+      document.getElementById('carbPctLbl').textContent = cPct;
+      document.getElementById('fatPctLbl').textContent = fPct;
+
+      document.getElementById('protGkgLbl').textContent = (pG / weight).toFixed(1);
+      document.getElementById('carbGkgLbl').textContent = (cG / weight).toFixed(1);
+      document.getElementById('fatGkgLbl').textContent = (fG / weight).toFixed(1);
+
+      document.getElementById('protTargetG').textContent = `${pG} g (${Math.round(pKcal)} kcal)`;
+      document.getElementById('carbTargetG').textContent = `${cG} g (${Math.round(cKcal)} kcal)`;
+      document.getElementById('fatTargetG').textContent = `${fG} g (${Math.round(fKcal)} kcal)`;
+
+      document.getElementById('goalKcalInline').textContent = targetKcal;
+      document.getElementById('goalProtInline').textContent = pG;
+      document.getElementById('goalCarbInline').textContent = cG;
+      document.getElementById('goalFatInline').textContent = fG;
+
+      return { targetKcal, pG, cG, fG };
+    }
+
+    function setMacroPreset(p, c, f) {
+      document.getElementById('protPct').value = p;
+      document.getElementById('carbPct').value = c;
+      document.getElementById('fatPct').value = f;
+      saveAndCalc();
+    }
+
+    function adjustMacros(changed) {
+      let p = parseInt(document.getElementById('protPct').value);
+      let c = parseInt(document.getElementById('carbPct').value);
+      let f = parseInt(document.getElementById('fatPct').value);
+      const total = p + c + f;
+      if (total !== 100) {
+        const diff = 100 - total;
+        if (changed === 'P') {
+          c = Math.max(5, Math.min(75, c + diff));
+          document.getElementById('carbPct').value = c;
+        } else if (changed === 'C') {
+          f = Math.max(15, Math.min(65, f + diff));
+          document.getElementById('fatPct').value = f;
+        } else {
+          c = Math.max(5, Math.min(75, c + diff));
+          document.getElementById('carbPct').value = c;
+        }
+      }
+      saveAndCalc();
+    }
+
+    function renderMeals() {
+      const container = document.getElementById('mealsContainer');
+      const foods = getAllFoods();
+      container.innerHTML = '';
+
+      let totalKcal = 0, totalP = 0, totalC = 0, totalF = 0;
+
+      mealNames.forEach(meal => {
+        const items = mealsData[meal.id] || [];
+        let mKcal = 0, mP = 0, mC = 0, mF = 0;
+
+        const rowsHtml = items.map((item, idx) => {
+          const food = foods.find(f => f.id === item.foodId) || foods[0];
+          const factor = (parseFloat(item.grams) || 0) / 100;
+          const p = food.p * factor;
+          const c = food.c * factor;
+          const f = food.f * factor;
+          const kcal = (p * 4) + (c * 4) + (f * 9);
+
+          mP += p; mC += c; mF += f; mKcal += kcal;
+
+          const optionsHtml = foods.map(fo =>
+            `<option value="${fo.id}" ${fo.id === food.id ? 'selected' : ''}>${fo.name}</option>`
+          ).join('');
+
+          return `
+            <div class="grid grid-cols-12 gap-2 items-center py-2 border-b border-slate-100 dark:border-slate-700/50 last:border-0 text-xs">
+              <div class="col-span-6 sm:col-span-5">
+                <select onchange="updateMealItem(${meal.id}, ${idx}, 'foodId', this.value)" class="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/60 px-2 py-1.5 text-xs">
+                  ${optionsHtml}
+                </select>
+              </div>
+              <div class="col-span-3 sm:col-span-2 flex items-center gap-1">
+                <input type="number" value="${item.grams}" min="0" max="1500" step="5" oninput="updateMealItem(${meal.id}, ${idx}, 'grams', this.value)" class="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/60 px-2 py-1.5 text-xs text-center font-semibold" />
+                <span class="text-[10px] text-slate-400">g</span>
+              </div>
+              <div class="col-span-2 sm:col-span-4 text-right font-medium text-slate-600 dark:text-slate-300">
+                <span class="font-bold text-slate-800 dark:text-white">${Math.round(kcal)} kcal</span>
+                <span class="hidden sm:inline text-[11px] text-slate-400 ml-1">(P:${p.toFixed(0)} C:${c.toFixed(0)} G:${f.toFixed(0)})</span>
+              </div>
+              <div class="col-span-1 text-right no-print">
+                <button onclick="removeMealItem(${meal.id}, ${idx})" class="text-slate-400 hover:text-rose-500 font-bold px-1">✕</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        totalKcal += mKcal; totalP += mP; totalC += mC; totalF += mF;
+
+        const mealCard = document.createElement('div');
+        mealCard.className = 'rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 bg-slate-50/40 dark:bg-slate-800/40';
+        mealCard.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">${meal.title}</h3>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="text-slate-500 dark:text-slate-400">
+                <strong class="text-slate-800 dark:text-white">${Math.round(mKcal)} kcal</strong> • P: ${mP.toFixed(0)}g | C: ${mC.toFixed(0)}g | G: ${mF.toFixed(0)}g
+              </span>
+              <button onclick="addMealItem(${meal.id})" class="no-print text-xs font-semibold px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white">+ Item</button>
+            </div>
+          </div>
+          <div>${rowsHtml || '<p class="text-xs text-slate-400 italic py-1">Nenhum alimento adicionado.</p>'}</div>
+        `;
+        container.appendChild(mealCard);
+      });
+
+      updateProgressBars(totalKcal, totalP, totalC, totalF);
+    }
+
+    function updateProgressBars(kcal, p, c, f) {
+      const targets = calculateTargets();
+
+      document.getElementById('eatenKcal').textContent = Math.round(kcal);
+      document.getElementById('eatenProt').textContent = Math.round(p);
+      document.getElementById('eatenCarb').textContent = Math.round(c);
+      document.getElementById('eatenFat').textContent = Math.round(f);
+
+      const calPct = Math.min(100, Math.round((kcal / targets.targetKcal) * 100));
+      const pPct = Math.min(100, Math.round((p / targets.pG) * 100));
+      const cPct = Math.min(100, Math.round((c / targets.cG) * 100));
+      const fPct = Math.min(100, Math.round((f / targets.fG) * 100));
+
+      document.getElementById('calPctTxt').textContent = `${Math.round((kcal / targets.targetKcal) * 100)}%`;
+      document.getElementById('protBarPct').textContent = `${Math.round((p / targets.pG) * 100)}%`;
+      document.getElementById('carbBarPct').textContent = `${Math.round((c / targets.cG) * 100)}%`;
+      document.getElementById('fatBarPct').textContent = `${Math.round((f / targets.fG) * 100)}%`;
+
+      document.getElementById('calBar').style.width = `${calPct}%`;
+      document.getElementById('protBar').style.width = `${pPct}%`;
+      document.getElementById('carbBar').style.width = `${cPct}%`;
+      document.getElementById('fatBar').style.width = `${fPct}%`;
+
+      const diff = kcal - targets.targetKcal;
+      const badge = document.getElementById('calStatusBadge');
+      if (Math.abs(diff) <= 100) {
+        badge.textContent = '🎯 Na Meta Calórica';
+        badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300';
+      } else if (diff < -100) {
+        badge.textContent = `Faltam ${Math.abs(Math.round(diff))} kcal`;
+        badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+      } else {
+        badge.textContent = `+${Math.round(diff)} kcal acima da meta`;
+        badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300';
+      }
+    }
+
+    function addMealItem(mealId) {
+      if (!mealsData[mealId]) mealsData[mealId] = [];
+      mealsData[mealId].push({ foodId: 'frango', grams: 100 });
+      saveAndCalc();
+    }
+
+    function removeMealItem(mealId, idx) {
+      mealsData[mealId].splice(idx, 1);
+      saveAndCalc();
+    }
+
+    function updateMealItem(mealId, idx, field, val) {
+      mealsData[mealId][idx][field] = field === 'grams' ? (parseFloat(val) || 0) : val;
+      saveAndCalc();
+    }
+
+    function clearMeals() {
+      mealsData = { 0: [], 1: [], 2: [], 3: [], 4: [] };
+      saveAndCalc();
+    }
+
+    function saveAndCalc() {
+      const profile = {
+        patientName: document.getElementById('patientName').value,
+        sex: document.getElementById('sex').value,
+        age: document.getElementById('age').value,
+        weight: document.getElementById('weight').value,
+        height: document.getElementById('height').value,
+        bf: document.getElementById('bf').value,
+        lbm: document.getElementById('lbm').value,
+        bmrMeasured: document.getElementById('bmrMeasured').value,
+        activity: document.getElementById('activity').value,
+        goal: document.getElementById('goal').value,
+        protPct: document.getElementById('protPct').value,
+        carbPct: document.getElementById('carbPct').value,
+        fatPct: document.getElementById('fatPct').value,
+      };
+      localStorage.setItem('ip_nutricalc_profile', JSON.stringify(profile));
+      localStorage.setItem('ip_nutricalc_meals', JSON.stringify(mealsData));
+      renderMeals();
+    }
+
+    // Pipeline via URL Query Parameters (?peso=78.5&altura=172&idade=42&sexo=M&bf=18.2&massa_magra=64.2&tmb=1750&nome=Joao)
+    function checkUrlPipelineParams() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('peso') || params.has('bf') || params.has('massa_magra') || params.has('tmb')) {
+        if (params.has('nome')) document.getElementById('patientName').value = params.get('nome');
+        if (params.has('sexo')) document.getElementById('sex').value = params.get('sexo').toUpperCase();
+        if (params.has('idade')) document.getElementById('age').value = params.get('idade');
+        if (params.has('peso')) document.getElementById('weight').value = params.get('peso');
+        if (params.has('altura')) document.getElementById('height').value = params.get('altura');
+        if (params.has('bf')) document.getElementById('bf').value = params.get('bf');
+        if (params.has('massa_magra')) document.getElementById('lbm').value = params.get('massa_magra');
+        if (params.has('tmb')) document.getElementById('bmrMeasured').value = params.get('tmb');
+        document.getElementById('bioBanner').classList.remove('hidden');
+        saveAndCalc();
+      }
+    }
+
+    function openBioModal() {
+      document.getElementById('bioModal').classList.remove('hidden');
+      document.getElementById('bioModal').classList.add('flex');
+    }
+    function closeBioModal() {
+      document.getElementById('bioModal').classList.add('hidden');
+      document.getElementById('bioModal').classList.remove('flex');
+    }
+
+    function applyBioJson() {
+      try {
+        const data = JSON.parse(document.getElementById('bioJsonInput').value);
+        if (data.nome) document.getElementById('patientName').value = data.nome;
+        if (data.sexo) document.getElementById('sex').value = data.sexo.toUpperCase();
+        if (data.idade) document.getElementById('age').value = data.idade;
+        if (data.peso) document.getElementById('weight').value = data.peso;
+        if (data.altura) document.getElementById('height').value = data.altura;
+        if (data.bf) document.getElementById('bf').value = data.bf;
+        if (data.massa_magra) document.getElementById('lbm').value = data.massa_magra;
+        if (data.tmb) document.getElementById('bmrMeasured').value = data.tmb;
+        closeBioModal();
+        document.getElementById('bioBanner').classList.remove('hidden');
+        saveAndCalc();
+      } catch (e) {
+        alert('JSON inválido! Verifique a formatação.');
+      }
+    }
+
+    function copyShareUrl() {
+      const base = window.location.origin + window.location.pathname;
+      const params = new URLSearchParams({
+        nome: document.getElementById('patientName').value,
+        sexo: document.getElementById('sex').value,
+        idade: document.getElementById('age').value,
+        peso: document.getElementById('weight').value,
+        altura: document.getElementById('height').value,
+        bf: document.getElementById('bf').value,
+        massa_magra: document.getElementById('lbm').value,
+        tmb: document.getElementById('bmrMeasured').value
+      });
+      const url = `${base}?${params.toString()}`;
+      navigator.clipboard.writeText(url);
+      alert('Link personalizado copiado para a área de transferência!');
+    }
+
+    function openCustomFoodModal() {
+      document.getElementById('customFoodModal').classList.remove('hidden');
+      document.getElementById('customFoodModal').classList.add('flex');
+    }
+    function closeCustomFoodModal() {
+      document.getElementById('customFoodModal').classList.add('hidden');
+      document.getElementById('customFoodModal').classList.remove('flex');
+    }
+    function saveCustomFood() {
+      const name = document.getElementById('cfName').value.trim();
+      const p = parseFloat(document.getElementById('cfP').value) || 0;
+      const c = parseFloat(document.getElementById('cfC').value) || 0;
+      const f = parseFloat(document.getElementById('cfF').value) || 0;
+      if (!name) return;
+      const id = 'custom_' + Date.now();
+      customFoods.push({ id, name, p, c, f });
+      localStorage.setItem('ip_nutricalc_custom_foods', JSON.stringify(customFoods));
+      closeCustomFoodModal();
+      renderMeals();
+    }
+
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    // Inicialização
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = JSON.parse(localStorage.getItem('ip_nutricalc_profile') || 'null');
+      if (saved) {
+        document.getElementById('patientName').value = saved.patientName || '';
+        document.getElementById('sex').value = saved.sex || 'F';
+        document.getElementById('age').value = saved.age || 35;
+        document.getElementById('weight').value = saved.weight || 72;
+        document.getElementById('height').value = saved.height || 165;
+        document.getElementById('bf').value = saved.bf || '';
+        document.getElementById('lbm').value = saved.lbm || '';
+        document.getElementById('bmrMeasured').value = saved.bmrMeasured || '';
+        document.getElementById('activity').value = saved.activity || '1.375';
+        document.getElementById('goal').value = saved.goal || '0';
+        document.getElementById('protPct').value = saved.protPct || 30;
+        document.getElementById('carbPct').value = saved.carbPct || 40;
+        document.getElementById('fatPct').value = saved.fatPct || 30;
+      }
+      checkUrlPipelineParams();
+      renderMeals();
+    });
+  </script>
+</body>
+</html>
